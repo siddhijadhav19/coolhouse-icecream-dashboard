@@ -1,0 +1,5 @@
+{
+  "name": "CoolHouse Ice Cream Dashboard",
+  "description": "A full-stack data analytical dashboard for CoolHouse Ice Cream Shop with inventory management, sales tracking, and Excel reporting.",
+  "requestFramePermissions": []
+}
