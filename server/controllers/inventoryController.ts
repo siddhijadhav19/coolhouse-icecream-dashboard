@@ -1,32 +1,42 @@
 import { Request, Response } from 'express';
-import db from '../db.ts';
+import { query } from '../db.ts';
 
-export const getInventory = (req: Request, res: Response) => {
-  const inventory = db.prepare('SELECT * FROM inventory').all();
+export const getInventory = async (req: Request, res: Response) => {
+  const inventory = await query('SELECT * FROM inventory');
   res.json(inventory);
 };
 
-export const addFlavor = (req: Request, res: Response) => {
+export const addFlavor = async (req: Request, res: Response) => {
   const { flavor_name, stock_quantity, price_per_unit } = req.body;
   try {
-    const stmt = db.prepare('INSERT INTO inventory (flavor_name, stock_quantity, price_per_unit) VALUES (?, ?, ?)');
-    stmt.run(flavor_name, stock_quantity, price_per_unit);
-    res.status(201).json({ message: 'Flavor added' });
-  } catch (error) {
-    res.status(400).json({ message: 'Flavor already exists' });
+    await query(
+      'INSERT INTO inventory (flavor_name, stock_quantity, price_per_unit) VALUES (?, ?, ?)',
+      [flavor_name, stock_quantity, price_per_unit]
+    );
+    res.status(201).json({ message: 'Flavor added successfully' });
+  } catch (error: any) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      res.status(400).json({ message: 'Flavor already exists' });
+    } else {
+      console.error('Add flavor error:', error);
+      res.status(500).json({ message: 'Failed to add flavor' });
+    }
   }
 };
 
-export const updateStock = (req: Request, res: Response) => {
+export const updateStock = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { stock_quantity, price_per_unit } = req.body;
-  const stmt = db.prepare('UPDATE inventory SET stock_quantity = ?, price_per_unit = ? WHERE id = ?');
-  stmt.run(stock_quantity, price_per_unit, id);
+  await query('UPDATE inventory SET stock_quantity = ?, price_per_unit = ? WHERE id = ?', [
+    stock_quantity,
+    price_per_unit,
+    id
+  ]);
   res.json({ message: 'Stock updated' });
 };
 
-export const deleteFlavor = (req: Request, res: Response) => {
+export const deleteFlavor = async (req: Request, res: Response) => {
   const { id } = req.params;
-  db.prepare('DELETE FROM inventory WHERE id = ?').run(id);
+  await query('DELETE FROM inventory WHERE id = ?', [id]);
   res.json({ message: 'Flavor deleted' });
 };

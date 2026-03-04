@@ -14,7 +14,10 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  // Seed database
+  // Initialize and seed database
+  // initDb creates tables if they don't exist, then seedData populates initial rows
+  const { initDb } = await import('./server/db.ts');
+  await initDb();
   await seedData();
 
   app.use(express.json());
